@@ -1,0 +1,61 @@
+version: '3.9'
+
+networks:
+  dev:
+
+services:
+  ollama:
+    container_name: ollama
+    image: ollama/ollama:latest
+    # Если официального образа нет, замените на подходящий или используйте команду run на хосте.
+    restart: always
+    ports:
+      - 11434:11434
+    volumes:
+      # если Ollama использует директорию для моделей/данных, пробросьте её
+      - ./ollama-data:/root/.ollama
+    # pull_policy: always
+    # tty: true
+    networks:
+      - dev
+    
+    env_file:
+      - ".env"
+
+  db:
+    container_name: postgres
+    image: postgres
+    restart: always
+    
+    ports:
+      - 5432:5432
+    networks:
+      - dev
+    
+    env_file:
+      - ".env"
+
+  
+  adminer:
+    container_name: adminer
+    image: adminer
+    restart: always
+    ports:
+      - 8080:8080
+    networks:
+      - dev
+
+  bot:
+    container_name: bot
+    depends_on:
+      - db
+      - ollama
+    build:
+      context: .
+    restart: unless-stopped
+    
+    env_file:
+      - ".env"
+
+    networks:
+      - dev
