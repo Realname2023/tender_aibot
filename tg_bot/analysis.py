@@ -59,11 +59,15 @@ async def run_analysis(message, user_id, base_url, prompt):
                     tender = await add_tender(session=session, user_id=user_id,
                                           number=number, url=deal_url)
                 if tender:
+
                     user_message = (
                         f"{tender.url} это ссылка на госзакупку. "
                         f"Проанализируй ее, чтобы ответить на запрос: {prompt}"
                     )
                     answer = await chat_chain(user_message, tender.number)
+                    if "False" in answer:
+                        print(f"Пропущено {tender.url}")
+                        continue
                     await send_long_message(message, f'{deal_url}\n{answer}')
 
                     await asyncio.sleep(10)
